@@ -18,6 +18,8 @@ const AddBlog = (props) => {
     blogFormData,
     setBlogFormData,
     handleSaveData,
+    currentEditedBlogId,
+    setCurrentEditedBlogId,
   } = props;
 
   return (
@@ -38,11 +40,14 @@ const AddBlog = (props) => {
             title: "",
             description: "",
           });
+          setCurrentEditedBlogId(null);
         }}
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Blog</DialogTitle>
+            <DialogTitle>
+              {currentEditedBlogId ? "Edit Blog" : "Add New Blog"}{" "}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">

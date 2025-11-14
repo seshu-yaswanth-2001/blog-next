@@ -24,14 +24,21 @@ const BlogOverView = (props) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [blogFormData, setBlogFormData] = useState(initialBlogFormData);
   const [loading, setLoading] = useState(false);
+  const [currentEditedBlogId, setCurrentEditedBlogId] = useState(null);
 
   const handleSaveData = async () => {
     try {
       setLoading(true);
-      const APIResponse = await fetch(`/api/add-blog/`, {
-        method: "POST",
-        body: JSON.stringify(blogFormData),
-      });
+      const APIResponse =
+        currentEditedBlogId !== null
+          ? await fetch(`/api/update-blog?id=${currentEditedBlogId}`, {
+              method: "PUT",
+              body: JSON.stringify(blogFormData),
+            })
+          : await fetch(`/api/add-blog/`, {
+              method: "POST",
+              body: JSON.stringify(blogFormData),
+            });
 
       const result = await APIResponse.json();
 
@@ -39,13 +46,16 @@ const BlogOverView = (props) => {
         setBlogFormData(initialBlogFormData);
         setOpenDialog(false);
         setLoading(false);
+        setCurrentEditedBlogId(null);
         router.refresh();
+      } else {
+        setLoading(false);
       }
       console.log(result);
     } catch (error) {
       setLoading(false);
       setBlogFormData(initialBlogFormData);
-      throw new Error(error);
+      console.log(error);
     }
   };
 
@@ -63,6 +73,16 @@ const BlogOverView = (props) => {
     }
   };
 
+  const handleBlogUpdate = async (blogItem) => {
+    if (!blogItem) return;
+    setCurrentEditedBlogId(blogItem._id ?? null);
+    setBlogFormData({
+      title: blogItem?.title ?? "",
+      description: blogItem?.description ?? "",
+    });
+    setOpenDialog(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col gap-10 bg-linear-to-r from-purple-500 to-blue-600 p-6">
       <AddBlog
@@ -72,6 +92,8 @@ const BlogOverView = (props) => {
         setBlogFormData={setBlogFormData}
         loading={loading}
         handleSaveData={handleSaveData}
+        currentEditedBlogId={currentEditedBlogId}
+        setCurrentEditedBlogId={setCurrentEditedBlogId}
       />
 
       {/* Show Blogs */}
@@ -83,7 +105,9 @@ const BlogOverView = (props) => {
                 <CardTitle className="mb-5">{blog?.title}</CardTitle>
                 <CardDescription>{blog?.description}</CardDescription>
                 <div className="mt-5 flex gap-5  items-center">
-                  <Button>Edit</Button>
+                  <Button onClick={() => handleBlogUpdate(blog._id)}>
+                    Edit
+                  </Button>
                   <Button onClick={() => handleDeleteBlog(blog._id)}>
                     Delete
                   </Button>
